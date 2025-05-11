@@ -1,8 +1,8 @@
 -- CREATE EXTERNAL TABLE
 CREATE TABLE catalog.schema.table_name (
 
- 	id          BIGINT NOT NULL COMMENT 'Identificador único do evento',
- 	nome        STRING NOT NULL COMMENT 'Nome do evento ou entidade relacionada',
+  id          BIGINT NOT NULL COMMENT 'Identificador único do evento',
+  nome        STRING NOT NULL COMMENT 'Nome do evento ou entidade relacionada',
   data_evento DATE   NOT NULL COMMENT 'Data em que o evento ocorreu',
   valor       DECIMAL(10,2)   COMMENT 'Valor financeiro associado ao evento'
 
