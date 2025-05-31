@@ -1,3 +1,4 @@
+
 -- CREATE EXTERNAL TABLE
 CREATE TABLE catalog.schema.table_name (
 
@@ -8,46 +9,41 @@ CREATE TABLE catalog.schema.table_name (
 
 )
 USING DELTA
-CLUSTER BY ()
-COMMENT ""
-LOCATION ""
+COMMENT "Tabela personalizada de exemplo"
+-- PARTITIONED BY (data_evento)
+CLUSTER BY (data_evento)
+LOCATION "s://<bucket_name>/my/folder/table_name"
 TBLPROPERTIES (
 
-  # Governança e Catalogação
-  'dataOwner' = '',
-  'team' = '', 
+    -- Tags Personalizadas 
+    'dataOwner' = '',
+    'team' = '', 
 
-  # Otimizações para escrita Delta Files
-  'delta.autoOptimize.autoCompact' = 'true',   -- Compactação automática
-  'delta.autoOptimize.optimizeWrite' = 'true', -- Escrita otimizada
+    -- Mapeamento de colunas e engines para Leitura/Escrita
+    'delta.minReaderVersion' = '2',
+    'delta.minWriteVersion' = '5', 
+    'delta.ColumnMapping.mode' = 'name', 
 
-  # Retenção e Vacuum Defaults
-  'delta.deletedFileRetentionDuration' = '30 days', -- Retenção para time travel
-  'delta.logRetentionDuration' = '30 days',         -- Histórico de transações
+    -- Coletar estatísticas sobre colunas chaves
+    'delta.dataSkippingStatsColumns' = 'data_evento, valor', -- Cuidado em não usar campos string, especialmente com textos/longos
+
+    -- Otimizações para escrita Delta Files
+    'delta.autoOptimize.autoCompact' = 'true',   -- Compactação automática
+    'delta.autoOptimize.optimizeWrite' = 'true', -- Escrita otimizada
+
+    -- Retenção e Vacuum Defaults
+    'delta.deletedFileRetentionDuration' = '30 days', -- Retenção para time travel
+    'delta.logRetentionDuration' = '30 days',         -- Histórico de transações
+
 )
 
--- 90 dias: 2160 HOURS
--- 60 dias: 1440 HOURS
--- 30 dias: 720  HOURS
--- 15 dias: 360  HOURS
--- 7  dias: 168  HOURS
+-- Nâo é possível configurar em tempo de criação da tabela, execute o alter table após criação.
+ALTER TABLE <catalog.schema.table_name> SET OWNER TO `<nome_owner>`;
 
 -- Verifique o limite efetivo antes de executar
 SHOW TBLPROPERTIES sua_tabela ('delta.deletedFileRetentionDuration');
 
+-- Ao alterar "delta.dataSkippingStatsColumns" em uma tabela já existente rode
+ANALYZE TABLE <catalog.schema.table_name> COMPUTE DELTA STATISTICS;
 
-VACUUM <catalog.schema.table_name> RETAIN 720 HOURS DRY RUN; -- Simula antes da Execução
-
-f = (
-	spark_session.read.table('myTable')
-
-)
-
-# Otimização
-df.optimize().executeCompaction()
-
-# Vacuum com retenção alinhada às propriedades
-
-retantion_hours = recuperar dos metadados tbproperties da tabela
-df.vacuum(retentionHours=retantion_hours)
 
